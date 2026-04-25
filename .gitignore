@@ -1,0 +1,21 @@
+# Binaries
+ja2en
+*.exe
+*.test
+*.out
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*~
+
+# Local secrets
+*.env
+.env*
+
+# Go
+/dist/
+/bin/
+/build/
+coverage.out

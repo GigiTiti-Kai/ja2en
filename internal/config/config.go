@@ -1,0 +1,161 @@
+// Package config loads and resolves the ja2en TOML configuration file.
+package config
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/BurntSushi/toml"
+)
+
+// Config maps the on-disk TOML structure of ~/.config/ja2en/config.toml.
+type Config struct {
+	DefaultProfile string             `toml:"default_profile"`
+	Model          string             `toml:"model"`
+	APIBase        string             `toml:"api_base"`
+	TimeoutSeconds int                `toml:"timeout_seconds"`
+	Profiles       map[string]Profile `toml:"profiles"`
+}
+
+// Profile holds per-profile prompt and optional model override.
+type Profile struct {
+	Prompt     string `toml:"prompt"`
+	PromptFile string `toml:"prompt_file"`
+	Model      string `toml:"model"`
+}
+
+// Resolved is the runtime-ready config after merging CLI flags and env vars.
+type Resolved struct {
+	Prompt         string
+	Model          string
+	APIBase        string
+	APIKey         string
+	TimeoutSeconds int
+}
+
+// Path returns the absolute path to config.toml, honoring XDG_CONFIG_HOME.
+func Path() (string, error) {
+	if xdg := os.Getenv("XDG_CONFIG_HOME"); xdg != "" {
+		return filepath.Join(xdg, "ja2en", "config.toml"), nil
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, ".config", "ja2en", "config.toml"), nil
+}
+
+// Load parses the TOML file at path into a Config.
+func Load(path string) (*Config, error) {
+	var cfg Config
+	if _, err := toml.DecodeFile(path, &cfg); err != nil {
+		return nil, fmt.Errorf("failed to parse %s: %w", path, err)
+	}
+	return &cfg, nil
+}
+
+// Resolve merges Config with CLI overrides and environment variables, returning
+// a runtime-ready Resolved value. Prompt precedence: promptFileOverride >
+// profile.PromptFile > profile.Prompt. Model precedence: modelOverride >
+// profile.Model > Config.Model.
+func (c *Config) Resolve(profileName, modelOverride, promptFileOverride string) (*Resolved, error) {
+	apiKey := strings.TrimSpace(os.Getenv("OPENROUTER_API_KEY"))
+	if apiKey == "" {
+		return nil, fmt.Errorf("environment variable OPENROUTER_API_KEY is required (get one at https://openrouter.ai/keys)")
+	}
+
+	if profileName == "" {
+		profileName = c.DefaultProfile
+	}
+	if profileName == "" {
+		return nil, fmt.Errorf("no profile specified and no default_profile in config")
+	}
+
+	profile, ok := c.Profiles[profileName]
+	if !ok {
+		names := make([]string, 0, len(c.Profiles))
+		for k := range c.Profiles {
+			names = append(names, k)
+		}
+		return nil, fmt.Errorf("profile %q not found. available: %v", profileName, names)
+	}
+
+	prompt, err := resolvePrompt(profile, promptFileOverride)
+	if err != nil {
+		return nil, fmt.Errorf("profile %q: %w", profileName, err)
+	}
+
+	model := modelOverride
+	if model == "" {
+		model = profile.Model
+	}
+	if model == "" {
+		model = c.Model
+	}
+	if model == "" {
+		return nil, fmt.Errorf("no model specified at any level (cli/profile/top)")
+	}
+
+	apiBase := c.APIBase
+	if apiBase == "" {
+		apiBase = "https://openrouter.ai/api/v1"
+	}
+
+	timeout := c.TimeoutSeconds
+	if timeout <= 0 {
+		timeout = 30
+	}
+
+	return &Resolved{
+		Prompt:         prompt,
+		Model:          model,
+		APIBase:        apiBase,
+		APIKey:         apiKey,
+		TimeoutSeconds: timeout,
+	}, nil
+}
+
+func resolvePrompt(p Profile, override string) (string, error) {
+	if override != "" {
+		return readPromptFile(override)
+	}
+	if p.Prompt != "" && p.PromptFile != "" {
+		return "", fmt.Errorf("both 'prompt' and 'prompt_file' set; only one is allowed")
+	}
+	if p.PromptFile != "" {
+		return readPromptFile(p.PromptFile)
+	}
+	if p.Prompt != "" {
+		return strings.TrimSpace(p.Prompt), nil
+	}
+	return "", fmt.Errorf("neither 'prompt' nor 'prompt_file' is set")
+}
+
+func readPromptFile(path string) (string, error) {
+	expanded, err := expandTilde(path)
+	if err != nil {
+		return "", err
+	}
+	// User-supplied path is the whole point of --prompt-file; reading it is intentional.
+	data, err := os.ReadFile(expanded) // #nosec G304
+	if err != nil {
+		return "", fmt.Errorf("read prompt file %s: %w", expanded, err)
+	}
+	return strings.TrimSpace(string(data)), nil
+}
+
+func expandTilde(path string) (string, error) {
+	if !strings.HasPrefix(path, "~/") && path != "~" {
+		return path, nil
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	if path == "~" {
+		return home, nil
+	}
+	return filepath.Join(home, path[2:]), nil
+}

@@ -1,0 +1,191 @@
+package config
+
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+func TestResolve_BasicSimpleProfile(t *testing.T) {
+	t.Setenv("OPENROUTER_API_KEY", "test-key")
+
+	cfg := &Config{
+		DefaultProfile: "simple",
+		Model:          "google/gemma-3-27b-it:free",
+		Profiles: map[string]Profile{
+			"simple": {Prompt: "translate to english"},
+		},
+	}
+
+	r, err := cfg.Resolve("", "", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if r.Model != "google/gemma-3-27b-it:free" {
+		t.Errorf("model = %q, want google/gemma-3-27b-it:free", r.Model)
+	}
+	if r.Prompt != "translate to english" {
+		t.Errorf("prompt = %q, want translate to english", r.Prompt)
+	}
+	if r.APIBase != "https://openrouter.ai/api/v1" {
+		t.Errorf("api_base default = %q", r.APIBase)
+	}
+	if r.TimeoutSeconds != 30 {
+		t.Errorf("timeout default = %d, want 30", r.TimeoutSeconds)
+	}
+}
+
+func TestResolve_MissingAPIKey(t *testing.T) {
+	t.Setenv("OPENROUTER_API_KEY", "")
+
+	cfg := &Config{
+		DefaultProfile: "simple",
+		Model:          "x",
+		Profiles:       map[string]Profile{"simple": {Prompt: "p"}},
+	}
+	if _, err := cfg.Resolve("", "", ""); err == nil {
+		t.Fatal("expected error for missing API key")
+	}
+}
+
+func TestResolve_ProfileNotFound(t *testing.T) {
+	t.Setenv("OPENROUTER_API_KEY", "k")
+
+	cfg := &Config{
+		DefaultProfile: "simple",
+		Model:          "x",
+		Profiles:       map[string]Profile{"simple": {Prompt: "p"}},
+	}
+	_, err := cfg.Resolve("nope", "", "")
+	if err == nil || !strings.Contains(err.Error(), "not found") {
+		t.Fatalf("expected profile-not-found error, got %v", err)
+	}
+}
+
+func TestResolve_PromptAndPromptFileExclusive(t *testing.T) {
+	t.Setenv("OPENROUTER_API_KEY", "k")
+
+	cfg := &Config{
+		DefaultProfile: "x",
+		Model:          "m",
+		Profiles: map[string]Profile{
+			"x": {Prompt: "p", PromptFile: "/tmp/foo"},
+		},
+	}
+	_, err := cfg.Resolve("", "", "")
+	if err == nil || !strings.Contains(err.Error(), "only one is allowed") {
+		t.Fatalf("expected exclusivity error, got %v", err)
+	}
+}
+
+func TestResolve_ModelOverridePrecedence(t *testing.T) {
+	t.Setenv("OPENROUTER_API_KEY", "k")
+
+	cfg := &Config{
+		DefaultProfile: "x",
+		Model:          "top",
+		Profiles: map[string]Profile{
+			"x": {Prompt: "p", Model: "profile"},
+		},
+	}
+
+	tests := []struct {
+		name string
+		cli  string
+		want string
+	}{
+		{"cli wins", "cli", "cli"},
+		{"profile fallback", "", "profile"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := cfg.Resolve("", tt.cli, "")
+			if err != nil {
+				t.Fatalf("err: %v", err)
+			}
+			if r.Model != tt.want {
+				t.Errorf("model = %q, want %q", r.Model, tt.want)
+			}
+		})
+	}
+}
+
+func TestResolve_PromptFileOverride(t *testing.T) {
+	t.Setenv("OPENROUTER_API_KEY", "k")
+
+	dir := t.TempDir()
+	p := filepath.Join(dir, "ad-hoc.md")
+	if err := os.WriteFile(p, []byte("ADHOC PROMPT\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := &Config{
+		DefaultProfile: "x",
+		Model:          "m",
+		Profiles:       map[string]Profile{"x": {Prompt: "default"}},
+	}
+	r, err := cfg.Resolve("", "", p)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if r.Prompt != "ADHOC PROMPT" {
+		t.Errorf("prompt = %q, want ADHOC PROMPT", r.Prompt)
+	}
+}
+
+func TestExpandTilde(t *testing.T) {
+	home, _ := os.UserHomeDir()
+	tests := []struct {
+		in, want string
+	}{
+		{"~", home},
+		{"~/foo", filepath.Join(home, "foo")},
+		{"/abs/path", "/abs/path"},
+		{"relative", "relative"},
+	}
+	for _, tt := range tests {
+		got, err := expandTilde(tt.in)
+		if err != nil {
+			t.Errorf("expandTilde(%q) err: %v", tt.in, err)
+			continue
+		}
+		if got != tt.want {
+			t.Errorf("expandTilde(%q) = %q, want %q", tt.in, got, tt.want)
+		}
+	}
+}
+
+func TestLoad_Roundtrip(t *testing.T) {
+	dir := t.TempDir()
+	p := filepath.Join(dir, "config.toml")
+	body := `
+default_profile = "simple"
+model = "google/gemma-3-27b-it:free"
+api_base = "https://openrouter.ai/api/v1"
+timeout_seconds = 15
+
+[profiles.simple]
+prompt = "translate jp to en"
+
+[profiles.detailed]
+prompt_file = "/tmp/x"
+model = "anthropic/claude-3-haiku"
+`
+	if err := os.WriteFile(p, []byte(body), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(p)
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+	if cfg.DefaultProfile != "simple" {
+		t.Errorf("default_profile = %q", cfg.DefaultProfile)
+	}
+	if cfg.TimeoutSeconds != 15 {
+		t.Errorf("timeout = %d", cfg.TimeoutSeconds)
+	}
+	if cfg.Profiles["detailed"].Model != "anthropic/claude-3-haiku" {
+		t.Errorf("detailed.model = %q", cfg.Profiles["detailed"].Model)
+	}
+}
