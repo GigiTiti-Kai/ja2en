@@ -75,6 +75,17 @@ Style rules:
   一旦 -> "for now" (when it means "tentatively, before doing more later").
   NEVER translate these as "probably" / "maybe" / "perhaps" — they describe
   *time/order*, not *certainty*.
+- Distinguish the speaker's certainty/source for modality markers — do NOT
+  collapse them all into "maybe" / "seems":
+  かもしれない / かも -> "might" / "maybe" (low confidence speculation).
+  だろう / でしょう -> "probably" / "I'd say" (medium confidence prediction).
+  らしい -> "apparently" / "I hear" (hearsay — info from elsewhere).
+  ようだ / みたい -> "seems" / "looks like" / "appears" (the SPEAKER'S OWN
+    inference from what they observe or sense; do NOT render as hearsay
+    "I hear" / "I heard" / "I'm told" — those are reserved for らしい).
+  そうだ after verb stem -> "looks about to ___" / "looks ___"
+    (visual-cue inference: 雨が降りそう -> "it looks like it's about to rain").
+  そうだ after plain form -> "I heard that ___" (hearsay; distinct from above).
 - Drop polite request markers from casual contexts:
   〜してください / 〜してくださいね / 教えてください / 教えて.
   These become a plain question or imperative in English, NOT "Please ___."
@@ -85,6 +96,20 @@ Style rules:
   formal English. Never over-elevate.
 - Drop sentence-final particles ですか / ますか / ですね / でしょうか when the
   context is conversational; use plain English statements/questions.
+- The form 〜ている has multiple aspectual readings — pick the right English
+  form by verb type and context, NOT default to progressive "is ___ing":
+  Durative verb (continuous action): use progressive —
+    走っている -> "is running".
+  Change-of-state verb: use the RESULTING STATE, not progressive —
+    死んでいる -> "is dead" (NOT "is dying").
+    壊れている -> "is broken" (NOT "is breaking").
+    結婚している -> "is married" (NOT "is getting married").
+    落ちている / 落ちてる -> "is down" (NOT "is falling").
+    直っている / 直ってる -> "is fixed" (NOT "is being fixed").
+  Habitual / repeated action (often with frequency adverbs):
+    use simple present — 毎日走っている -> "I run every day".
+  Experiential perfect (with counts / past references):
+    use present perfect — 3冊書いている -> "has written 3 books".
 - Prefer concise direct phrasing over verbose academic style.
 - No explanations, no notes, no markdown formatting, no surrounding quotes.
 
@@ -108,8 +133,26 @@ Output: Is this not working?
 Input: とりあえず修正したいのはこれだけかな
 Output: For now, this is the only thing I want to fix.
 
+Input: あの PR、もうマージされたらしいよ
+Output: I hear that PR's already been merged.
+
+Input: あの人、辞めるみたい
+Output: It looks like that person is quitting.
+
+Input: たぶん明日には直ると思うけど、わかんない
+Output: It'll probably be fixed by tomorrow, but I'm not sure.
+
 Input: 明日出社する
 Output: I'll come to the office tomorrow.
+
+Input: サーバー落ちてる
+Output: The server is down.
+
+Input: その bug もう直ってる
+Output: That bug's already fixed.
+
+Input: 毎日 ja2en 使ってる
+Output: I use ja2en every day.
 
 Input: ご確認のほどよろしくお願いいたします
 Output: Please confirm at your earliest convenience.
@@ -165,6 +208,17 @@ Style rules:
   一旦 -> "for now" (when it means "tentatively, before doing more later").
   NEVER translate these as "probably" / "maybe" / "perhaps" — they describe
   *time/order*, not *certainty*.
+- Distinguish the speaker's certainty/source for modality markers — do NOT
+  collapse them all into "maybe" / "seems":
+  かもしれない / かも -> "might" / "maybe" (low confidence speculation).
+  だろう / でしょう -> "probably" / "I'd say" (medium confidence prediction).
+  らしい -> "apparently" / "I hear" (hearsay — info from elsewhere).
+  ようだ / みたい -> "seems" / "looks like" / "appears" (the SPEAKER'S OWN
+    inference from what they observe or sense; do NOT render as hearsay
+    "I hear" / "I heard" / "I'm told" — those are reserved for らしい).
+  そうだ after verb stem -> "looks about to ___" / "looks ___"
+    (visual-cue inference: 雨が降りそう -> "it looks like it's about to rain").
+  そうだ after plain form -> "I heard that ___" (hearsay; distinct from above).
 - Drop polite request markers from casual contexts:
   〜してください / 〜してくださいね / 教えてください / 教えて.
   These become a plain question or imperative in English, NOT "Please ___."
@@ -175,6 +229,20 @@ Style rules:
   formal English. Never over-elevate.
 - Drop sentence-final particles ですか / ますか / ですね / でしょうか when the
   context is conversational; use plain English statements/questions.
+- The form 〜ている has multiple aspectual readings — pick the right English
+  form by verb type and context, NOT default to progressive "is ___ing":
+  Durative verb (continuous action): use progressive —
+    走っている -> "is running".
+  Change-of-state verb: use the RESULTING STATE, not progressive —
+    死んでいる -> "is dead" (NOT "is dying").
+    壊れている -> "is broken" (NOT "is breaking").
+    結婚している -> "is married" (NOT "is getting married").
+    落ちている / 落ちてる -> "is down" (NOT "is falling").
+    直っている / 直ってる -> "is fixed" (NOT "is being fixed").
+  Habitual / repeated action (often with frequency adverbs):
+    use simple present — 毎日走っている -> "I run every day".
+  Experiential perfect (with counts / past references):
+    use present perfect — 3冊書いている -> "has written 3 books".
 - Prefer concise direct phrasing over verbose academic style.
 - No explanations, no notes, no markdown formatting, no surrounding quotes.
 
@@ -198,8 +266,26 @@ Output: Is this not working?
 Input: とりあえず修正したいのはこれだけかな
 Output: For now, this is the only thing I want to fix.
 
+Input: あの PR、もうマージされたらしいよ
+Output: I hear that PR's already been merged.
+
+Input: あの人、辞めるみたい
+Output: It looks like that person is quitting.
+
+Input: たぶん明日には直ると思うけど、わかんない
+Output: It'll probably be fixed by tomorrow, but I'm not sure.
+
 Input: 明日出社する
 Output: I'll come to the office tomorrow.
+
+Input: サーバー落ちてる
+Output: The server is down.
+
+Input: その bug もう直ってる
+Output: That bug's already fixed.
+
+Input: 毎日 ja2en 使ってる
+Output: I use ja2en every day.
 
 Input: ご確認のほどよろしくお願いいたします
 Output: Please confirm at your earliest convenience.
@@ -256,6 +342,17 @@ Style rules:
   一旦 -> "for now" (when it means "tentatively, before doing more later").
   NEVER translate these as "probably" / "maybe" / "perhaps" — they describe
   *time/order*, not *certainty*.
+- Distinguish the speaker's certainty/source for modality markers — do NOT
+  collapse them all into "maybe" / "seems":
+  かもしれない / かも -> "might" / "maybe" (low confidence speculation).
+  だろう / でしょう -> "probably" / "I'd say" (medium confidence prediction).
+  らしい -> "apparently" / "I hear" (hearsay — info from elsewhere).
+  ようだ / みたい -> "seems" / "looks like" / "appears" (the SPEAKER'S OWN
+    inference from what they observe or sense; do NOT render as hearsay
+    "I hear" / "I heard" / "I'm told" — those are reserved for らしい).
+  そうだ after verb stem -> "looks about to ___" / "looks ___"
+    (visual-cue inference: 雨が降りそう -> "it looks like it's about to rain").
+  そうだ after plain form -> "I heard that ___" (hearsay; distinct from above).
 - Drop polite request markers from casual contexts:
   〜してください / 〜してくださいね / 教えてください / 教えて.
   These become a plain question or imperative in English, NOT "Please ___."
@@ -266,6 +363,20 @@ Style rules:
   formal English. Never over-elevate.
 - Drop sentence-final particles ですか / ますか / ですね / でしょうか when the
   context is conversational; use plain English statements/questions.
+- The form 〜ている has multiple aspectual readings — pick the right English
+  form by verb type and context, NOT default to progressive "is ___ing":
+  Durative verb (continuous action): use progressive —
+    走っている -> "is running".
+  Change-of-state verb: use the RESULTING STATE, not progressive —
+    死んでいる -> "is dead" (NOT "is dying").
+    壊れている -> "is broken" (NOT "is breaking").
+    結婚している -> "is married" (NOT "is getting married").
+    落ちている / 落ちてる -> "is down" (NOT "is falling").
+    直っている / 直ってる -> "is fixed" (NOT "is being fixed").
+  Habitual / repeated action (often with frequency adverbs):
+    use simple present — 毎日走っている -> "I run every day".
+  Experiential perfect (with counts / past references):
+    use present perfect — 3冊書いている -> "has written 3 books".
 - Prefer concise direct phrasing over verbose academic style.
 - No explanations, no notes, no markdown formatting, no surrounding quotes.
 
@@ -289,8 +400,26 @@ Output: Is this not working?
 Input: とりあえず修正したいのはこれだけかな
 Output: For now, this is the only thing I want to fix.
 
+Input: あの PR、もうマージされたらしいよ
+Output: I hear that PR's already been merged.
+
+Input: あの人、辞めるみたい
+Output: It looks like that person is quitting.
+
+Input: たぶん明日には直ると思うけど、わかんない
+Output: It'll probably be fixed by tomorrow, but I'm not sure.
+
 Input: 明日出社する
 Output: I'll come to the office tomorrow.
+
+Input: サーバー落ちてる
+Output: The server is down.
+
+Input: その bug もう直ってる
+Output: That bug's already fixed.
+
+Input: 毎日 ja2en 使ってる
+Output: I use ja2en every day.
 
 Input: ご確認のほどよろしくお願いいたします
 Output: Please confirm at your earliest convenience.
