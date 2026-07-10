@@ -36,7 +36,7 @@ profile ごとに参照する env が違う。default profile に対応するキ
   発行: <https://www.deepl.com/pro-api>（CC 必須、free tier 500K chars/月、課金なし）
 - **`OPENROUTER_API_KEY`** — オプションの `openrouter` profile 用（`sk-or-v1-...` 73文字）
 
-API キー設定は `~/.claude/rules/secrets-rotation.md` の secure pattern を必ず使う。`tail ~/.bashrc` 等で生値を Claude context に流出させない。
+API キー設定は `~/.claude/docs/runbooks/secrets-rotation.md` の secure pattern を必ず使う。`tail ~/.bashrc` 等で生値を Claude context に流出させない。
 
 ## アーキテクチャの肝
 
